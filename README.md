@@ -1,22 +1,59 @@
-# Forge — Software Engineering Agent Platform
+<div align="center">
 
-> A control center for software-engineering agents. Submit a feature request and
-> watch a team of specialist agents plan it, simulate the implementation, write a
-> test plan, run quality gates, and produce a pull-request-ready artifact — with a
-> human approving before anything ships.
+# 🛠️ Forge — Software Engineering Agent Platform
 
-Forge is **not** a coding chatbot. It models how an agentic software-delivery
-platform actually works: a typed runtime engine, four specialist agents, scored
-quality gates, full per-step observability (tokens / cost / retries / logs), and
-an explicit human-in-the-loop approval gate before the final artifact is created.
+**A control center for software-engineering agents.**
+Submit a feature request and watch a team of specialist agents plan it, simulate the
+implementation, write a test plan, run quality gates, and produce a pull-request-ready
+artifact — with a human approving before anything ships.
 
-It runs entirely in **mock mode** with **zero API keys** — every external
-dependency (the LLM, the database) sits behind a clean seam so it can be made
-live without touching the app.
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Zod](https://img.shields.io/badge/Zod-validation-3E67B1)](https://zod.dev)
+![Mock mode](https://img.shields.io/badge/runs%20with-zero%20API%20keys-22C55E)
+
+</div>
+
+---
+
+Forge is **not** a coding chatbot. It models how an agentic software-delivery platform
+actually works: a typed runtime engine, four specialist agents, scored quality gates,
+full per-step observability (tokens / cost / retries / logs), and an explicit
+human-in-the-loop approval gate before the final artifact is created.
+
+It runs entirely in **mock mode** with **zero API keys** — every external dependency
+(the LLM, the database) sits behind a clean seam so it can be made live without
+touching the app.
 
 ```bash
 pnpm install && pnpm dev   # → http://localhost:3000
 ```
+
+## Table of contents
+
+- [Why this project exists](#why-this-project-exists)
+- [Screenshots](#screenshots)
+- [Quick start](#quick-start)
+- [Feature tour](#feature-tour)
+- [Architecture](#architecture)
+  - [System overview](#system-overview)
+  - [The three seams](#the-three-seams)
+  - [The multi-agent workflow](#the-multi-agent-workflow)
+  - [Runtime state machine](#runtime-state-machine)
+- [The agents](#the-agents)
+- [The pipeline](#the-pipeline-9-steps)
+- [Quality gates](#quality-gates)
+- [Domain model](#domain-model)
+- [Observability](#observability)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Local setup](#local-setup)
+- [Environment variables](#environment-variables)
+- [Going to production](#going-to-production)
+- [Roadmap](#roadmap)
+- [Notes for reviewers](#notes-for-reviewers)
 
 ---
 
@@ -24,12 +61,20 @@ pnpm install && pnpm dev   # → http://localhost:3000
 
 Most "AI coding" demos are a single prompt → a single blob of code. Real agentic
 engineering tools need **structure**: decomposition, specialization, traceability,
-quality gates, and human control. Forge demonstrates that structure end-to-end —
-the architecture, the typed domain model, and the seams — in a way that's easy to
-read, run, and extend.
+quality gates, and human control. Forge demonstrates that structure end-to-end — the
+architecture, the typed domain model, and the seams — in a way that's easy to read,
+run, and extend.
 
-It was built as a portfolio piece for roles involving agent-system architecture,
-full-stack TypeScript, React/Next.js, and AI-assisted engineering workflows.
+It was built as a portfolio piece for roles involving **agent-system architecture,
+full-stack TypeScript, React/Next.js, and AI-assisted engineering workflows**.
+
+What it's meant to show:
+
+- I can design an **agent runtime** (orchestration, retries, state transitions, HITL)
+  rather than just call an LLM.
+- I model domains with a **rigorous type system** (discriminated unions, no `any`).
+- I build for **swappability** — mock today, real provider tomorrow, no rewrite.
+- I ship **polished, accessible product UI**, not a toy.
 
 ## Screenshots
 
@@ -45,25 +90,46 @@ full-stack TypeScript, React/Next.js, and AI-assisted engineering workflows.
 
 ![PR artifact](docs/screenshots/artifact.png)
 
+## Quick start
+
+Requires **Node 20+** and **pnpm**.
+
+```bash
+git clone https://github.com/mikulgohil/se-agent-platform.git
+cd se-agent-platform
+pnpm install
+pnpm dev          # http://localhost:3000
+```
+
+No environment variables are needed — the app seeds four demo workflows on first load
+and runs the agents deterministically. Open `/dashboard`, or hit **New request** and
+load an example to watch a fresh run.
+
 ## Feature tour
 
 - **New request** — describe a feature like you'd brief an engineer (title,
-  description, framework, complexity, risk, acceptance criteria). Zod-validated.
+  description, target framework, complexity, risk level, acceptance criteria).
+  Zod-validated, with one-click examples.
 - **Multi-agent run** — nine steps across four agents execute, with retries on
   transient failure and graceful skip-on-failure.
-- **Workflow detail** — request summary, an **agent timeline** with expandable
-  typed outputs per step, scored **quality gates**, a streaming-style **log**, an
+- **Workflow detail** — request summary, an **agent timeline** with expandable typed
+  outputs per step, scored **quality gates**, a streaming-style **log**, an
   **approval panel**, and the generated **PR artifact**.
 - **Human-in-the-loop** — runs pause at `awaiting_approval`; you approve (→ PR
-  artifact) or request changes (→ rejected).
-- **PR artifact** — title, summary, implementation plan, files changed, testing
-  plan, risks, reviewer checklist, rollback plan — **copyable as Markdown**.
-- **Dashboard** — totals, completion/failure counts, awaiting-approval queue,
-  average duration, average quality score, total estimated cost, recent runs.
+  artifact) or request changes (→ rejected). Failed runs offer a **retry**.
+- **PR artifact** — title, summary, implementation plan, files changed, testing plan,
+  risks, reviewer checklist, rollback plan — **copyable as Markdown** to paste
+  straight into GitHub.
+- **Dashboard** — totals, completion/failure counts, awaiting-approval queue, average
+  duration, average quality score, total estimated cost, recent runs.
+- **Settings** — model registry with pricing, the architecture seams, and the env vars
+  needed to go live.
 
 ---
 
 ## Architecture
+
+### System overview
 
 ```mermaid
 flowchart TD
@@ -82,6 +148,13 @@ flowchart TD
   Artifact --> Repo
 ```
 
+The UI never mutates state directly — it goes through **Server Actions** (the trust
+boundary, where Zod validation lives). Read paths (React Server Components) call the
+`Repository` interface. The runtime is a set of **pure async functions over plain
+data**: it returns new state and persists nothing, so any storage adapter can drive it.
+
+### The three seams
+
 Three deliberate seams keep the app decoupled from any provider:
 
 | Seam | Interface | Mock today | Production |
@@ -90,9 +163,9 @@ Three deliberate seams keep the app decoupled from any provider:
 | **Persistence** | `Repository` | seeded in-memory store | Supabase (`schema.sql` included) |
 | **Agents** | `Agent` | deterministic generators | same interface, LLM-backed |
 
-The whole domain model is **JSON-serializable** (string-literal unions, ISO
-timestamps, no class instances), so the same objects flow unchanged from the
-in-memory store into Supabase `jsonb` columns — the persistence seam costs nothing.
+The whole domain model is **JSON-serializable** (string-literal unions, ISO timestamps,
+no class instances), so the same objects flow unchanged from the in-memory store into
+Supabase `jsonb` columns — the persistence seam costs nothing.
 
 ### The multi-agent workflow
 
@@ -117,10 +190,9 @@ sequenceDiagram
   H-->>R: Approve / request changes
 ```
 
-Each agent produces a **typed, differently-shaped output** (a plan has `tasks`,
-a review has `findings`). `StepOutput` is a discriminated union keyed by `kind`,
-so a single `switch` narrows to the exact payload — no `any`, no guesswork in the
-renderer.
+Each agent produces a **typed, differently-shaped output** (a plan has `tasks`, a
+review has `findings`). `StepOutput` is a discriminated union keyed by `kind`, so a
+single `switch` narrows to the exact payload — no `any`, no guesswork in the renderer.
 
 ### Runtime state machine
 
@@ -137,20 +209,91 @@ stateDiagram-v2
   rejected --> [*]
 ```
 
-### Quality gates
+---
 
-After the agents finish, six gates are computed deterministically from their
-outputs — **TypeScript safety, Accessibility, Performance risk, Security risk,
-Test coverage, Maintainability** — each with a `passed | warning | failed`
-status, a 0–100 score, and an explanation. The workflow's overall quality score
-is a weighted mean (security and coverage weighted higher).
+## The agents
 
-### Observability
+Four agents implement a common `Agent` interface (`name`, `handles`, async `run`). A
+registry maps each step to its owning agent, so the runtime never hard-codes who does
+what.
 
-Every step records its agent, status, attempt count, duration, token estimate,
-cost estimate, and logs. Token/cost are estimated from input/output size against
-a real pricing table, so the numbers are believable even in mock mode — exactly
-what a real agentic tool needs for traceability.
+| Agent | Owns | Produces |
+|---|---|---|
+| 🧭 **Planner** | requirement analysis, architecture planning, task breakdown | clarified requirements, open questions, approach, components, data flow, trade-offs, estimated tasks |
+| ⌨️ **Code** | implementation simulation | concrete file changes (path, +/- lines, kind) with illustrative snippets and notes |
+| 🧪 **QA** | test plan, accessibility review | typed test cases (unit/integration/e2e/a11y), edge cases, regression risks, WCAG checklist |
+| 🛡️ **Review** | security review, performance review, PR summary | severity-ranked findings + an approval recommendation with a confidence score |
+
+In mock mode each agent generates its structured output **deterministically** and
+reports token/cost **estimated from the size of the synthetic prompt + serialized
+output** against a real pricing table — so the observability numbers are believable
+without any network call. To go live you implement `LanguageModel.generate()` once and
+switch each agent to call it with a Zod-validated structured response.
+
+## The pipeline (9 steps)
+
+Every workflow runs this fixed pipeline in order; outputs feed forward as context.
+Human approval is a workflow-level gate after step 9, not a step.
+
+| # | Step | Agent |
+|---|---|---|
+| 01 | Requirement analysis | Planner |
+| 02 | Architecture planning | Planner |
+| 03 | Task breakdown | Planner |
+| 04 | Implementation simulation | Code |
+| 05 | Test plan generation | QA |
+| 06 | Accessibility review | QA |
+| 07 | Security review | Review |
+| 08 | Performance review | Review |
+| 09 | PR summary generation | Review |
+| → | **Human approval** | _you_ |
+
+## Quality gates
+
+After the agents finish, six gates are computed deterministically from their outputs.
+Each has a `passed | warning | failed` status, a 0–100 score, and an explanation. The
+workflow's overall quality score is a **weighted mean** (security and coverage weighted
+higher).
+
+| Gate | Derived from |
+|---|---|
+| TypeScript safety | strict-typing baseline of the proposed change |
+| Accessibility | warnings/failures on the QA agent's WCAG checklist |
+| Performance risk | performance findings + bundle/line delta |
+| Security risk | severity of the security agent's findings |
+| Test coverage | test-case count vs. a target derived from acceptance criteria |
+| Maintainability | change complexity and surface area |
+
+## Domain model
+
+Everything is JSON-serializable and lives in `src/lib/engineering-agent/types.ts`.
+
+| Type | Purpose |
+|---|---|
+| `EngineeringRequest` | the user's feature brief (title, framework, complexity, risk, acceptance criteria) |
+| `AgentWorkflow` | a run: status, quality score, token/cost totals, approval, artifact ref |
+| `WorkflowStep` | one pipeline step: agent, status, typed `output`, error, attempts, timing, tokens, cost |
+| `StepOutput` | **discriminated union** — one variant per step kind (the type-system centerpiece) |
+| `QualityGate` | name, status, score, explanation |
+| `WorkflowLog` | level, message, timestamp, optional metadata |
+| `PullRequestArtifact` | title, summary, plan, files, testing, risks, checklist, rollback |
+
+Design choices worth calling out:
+
+- **String-literal unions, not enums** — `as const` arrays double as the type *and* the
+  runtime list used to render selects.
+- **ISO string timestamps, not `Date`** — no serialization surprises across the
+  server/client boundary or into `jsonb`.
+- **Injected `{ now, id }` dependencies** — production passes a real clock + UUIDs; the
+  seed passes a fixed clock + deterministic counter, so seeds are reproducible and the
+  engine is unit-testable.
+
+## Observability
+
+Every step records its agent, status, attempt count, duration, token estimate, cost
+estimate, and logs. The detail page surfaces all of it: a timeline, a log stream, and a
+metrics strip. Step timing is synthesized deterministically from output size, so a mock
+run produces a realistic timeline and seed data renders identically on every build.
 
 ---
 
@@ -158,7 +301,7 @@ what a real agentic tool needs for traceability.
 
 - **Next.js 16** (App Router, Turbopack, React Server Components)
 - **React 19** · **TypeScript** (strict, no `any`)
-- **Tailwind CSS v4** (CSS-first `@theme` tokens, dark UI)
+- **Tailwind CSS v4** (CSS-first `@theme` tokens, dark UI, semantic design tokens)
 - **Zod** for input validation (Server Actions are the trust boundary)
 - **Supabase-ready** persistence layer (Postgres schema included)
 - Zero runtime UI dependencies beyond React — icons are inline SVG
@@ -191,12 +334,10 @@ src/
       seed.ts               #   4 demo workflows (runs the real engine)
     actions.ts              # Server Actions
 supabase/schema.sql         # production Postgres schema
-docs/                       # architecture, original prompt, changelog
+docs/                       # architecture, original prompt, changelog, screenshots
 ```
 
 ## Local setup
-
-Requires Node 20+ and pnpm.
 
 ```bash
 pnpm install
@@ -205,9 +346,6 @@ pnpm build      # production build
 pnpm start      # serve the production build
 pnpm lint       # eslint
 ```
-
-No environment variables are needed — the app seeds four demo workflows on first
-load and runs the agents deterministically.
 
 ## Environment variables
 
@@ -219,17 +357,18 @@ All optional; only needed to go beyond mock mode. See `env.example` (copy to `.e
 | `SUPABASE_URL` | Postgres persistence |
 | `SUPABASE_SERVICE_ROLE_KEY` | Postgres persistence |
 
-## Plugging in a real LLM
+## Going to production
 
-1. Implement `LanguageModel.generate()` (see `mock-model.ts`) against the
-   Anthropic SDK.
-2. Swap each agent's deterministic generator for a call that sends the request +
-   prior outputs and parses a Zod-validated structured response.
+**Plug in a real LLM**
+
+1. Implement `LanguageModel.generate()` (see `mock-model.ts`) against the Anthropic SDK.
+2. Swap each agent's deterministic generator for a call that sends the request + prior
+   outputs and parses a Zod-validated structured response.
 3. Register the model descriptor with `ready: true`.
 
 Agents, runtime, quality gates, and UI are untouched — that's the point of the seam.
 
-## Going to Supabase
+**Move to Supabase**
 
 1. `pnpm add @supabase/supabase-js`
 2. Apply `supabase/schema.sql`.
@@ -237,7 +376,7 @@ Agents, runtime, quality gates, and UI are untouched — that's the point of the
    every query).
 4. In `store/index.ts`, return the Supabase adapter when its env vars are set.
 
-## Deployment
+**Deploy**
 
 Deploys cleanly to **Vercel** (zero config for Next.js) or any Node host
 (`pnpm build && pnpm start`). The demo needs no env vars. The in-memory store is
@@ -252,13 +391,11 @@ per-process — wire the Supabase adapter for shared, durable state.
 - [ ] Model selector with live cost tracking
 - [ ] Command palette + dark/light theme toggle
 
----
-
 ## Notes for reviewers
 
 This started from a single-page build brief (kept verbatim at
 [`docs/PROMPT.md`](docs/PROMPT.md)). The design decisions, trade-offs, and the
-mock-vs-real seams are written up in
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+mock-vs-real seams are written up in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), and
+the build log is in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 
 Built with Next.js 16, React 19, and TypeScript.
