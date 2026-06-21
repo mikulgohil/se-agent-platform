@@ -95,7 +95,7 @@ What it's meant to show:
 
 ## Quick start
 
-Requires **Node 20+** and **pnpm**.
+Requires **Node 22+** and **pnpm** (pnpm 11 needs Node ≥ 22.13).
 
 ```bash
 git clone https://github.com/mikulgohil/se-agent-platform.git
