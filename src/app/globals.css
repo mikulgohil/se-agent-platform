@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — a dark, calm "AI infrastructure" palette inspired by
+ * Linear / Vercel / LangSmith. Everything downstream references these
+ * semantic names (surface, elevated, line, accent…) — never raw hex.
+ *
+ * Static tokens live in @theme so Tailwind generates `bg-surface`,
+ * `text-fg-muted`, `border-line` utilities AND emits `--color-*` custom
+ * properties we can reference from plain CSS below.
+ */
+@theme {
+  /* base surfaces */
+  --color-bg: #0a0b0e;
+  --color-surface: #101216;
+  --color-elevated: #161922;
+  --color-overlay: #1c2029;
+
+  /* lines & text */
+  --color-line: #242833;
+  --color-line-strong: #323744;
+  --color-fg: #e7e9ee;
+  --color-fg-muted: #9aa2b1;
+  --color-fg-subtle: #6b7280;
+
+  /* brand accent — indigo/violet, used sparingly */
+  --color-accent: #6e7bff;
+  --color-accent-strong: #8b94ff;
+  --color-accent-bg: #6e7bff1f;
+
+  /* semantic state colors (solid + tinted background) */
+  --color-success: #34d399;
+  --color-success-bg: #34d39920;
+  --color-warning: #fbbf24;
+  --color-warning-bg: #fbbf2420;
+  --color-danger: #f87171;
+  --color-danger-bg: #f8717120;
+  --color-info: #60a5fa;
+  --color-info-bg: #60a5fa20;
+
+  /* per-agent identity colors (timeline + legends) */
+  --color-agent-planner: #60a5fa;
+  --color-agent-code: #a78bfa;
+  --color-agent-qa: #34d399;
+  --color-agent-review: #fbbf24;
+
+  --radius-lg: 0.75rem;
+}
+
+/* runtime-injected font vars from next/font (set on <html> in layout) */
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* subtle ambient grid behind hero / empty states */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* thin, unobtrusive scrollbars to match the product feel */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 9999px;
+  border: 3px solid var(--color-bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-fg-subtle);
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 var(--color-accent-bg); }
+  70% { box-shadow: 0 0 0 6px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
