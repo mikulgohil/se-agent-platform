@@ -10,6 +10,7 @@ import type {
 import type { EngineDeps } from "@/lib/engineering-agent/logger";
 import { runWorkflow, decideApproval } from "@/lib/engineering-agent/runtime";
 import {
+  type ActivityPoint,
   type ApprovalInput,
   type ArtifactSummary,
   type DashboardMetrics,
@@ -239,5 +240,46 @@ export class MemoryStore implements Repository {
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
         .slice(0, 6),
     };
+  }
+
+  /**
+   * Deterministic synthetic daily activity (mock mode has no real backlog).
+   * A real adapter would replace this with an aggregate query over `workflows`.
+   */
+  async getActivitySeries(days: number): Promise<ActivityPoint[]> {
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const now = Date.now();
+    const points: ActivityPoint[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now - i * 86_400_000);
+      // deterministic waves (no Math.random) so the chart is stable per build
+      const wave = (Math.sin(i * 1.1) + 1) / 2;
+      const wave2 = (Math.cos(i * 0.7) + 1) / 2;
+      const runs = 2 + Math.round(wave * 7);
+      const avgQuality = 80 + Math.round(wave2 * 16);
+      const tokens = runs * (3200 + Math.round(wave * 1800));
+      const cost = Math.round(tokens * 0.0000016 * 1e4) / 1e4;
+      points.push({
+        label: `${MONTHS[d.getMonth()]} ${d.getDate()}`,
+        runs,
+        avgQuality,
+        cost,
+        tokens,
+      });
+    }
+    return points;
+  }
+
+  async getTokensByAgent(): Promise<{ agent: string; tokens: number }[]> {
+    const totals = new Map<string, number>();
+    for (const steps of this.steps.values()) {
+      for (const s of steps) {
+        totals.set(s.agentName, (totals.get(s.agentName) ?? 0) + s.tokensEstimate);
+      }
+    }
+    const order = ["planner", "code", "qa", "review"];
+    return order
+      .filter((a) => totals.has(a))
+      .map((agent) => ({ agent, tokens: totals.get(agent) ?? 0 }));
   }
 }

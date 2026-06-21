@@ -45,6 +45,15 @@ export interface DashboardMetrics {
   recent: WorkflowSummary[];
 }
 
+/** One day of activity for the dashboard trend charts. */
+export interface ActivityPoint {
+  label: string;
+  runs: number;
+  avgQuality: number;
+  cost: number;
+  tokens: number;
+}
+
 export interface ApprovalInput {
   approved: boolean;
   note: string;
@@ -75,6 +84,10 @@ export interface Repository {
   } | null>;
 
   getDashboardMetrics(): Promise<DashboardMetrics>;
+  /** Daily activity series for trend charts (most recent `days` days). */
+  getActivitySeries(days: number): Promise<ActivityPoint[]>;
+  /** Estimated token usage broken down by agent across all runs. */
+  getTokensByAgent(): Promise<{ agent: string; tokens: number }[]>;
 }
 
 /** Duration helper shared by adapters. */

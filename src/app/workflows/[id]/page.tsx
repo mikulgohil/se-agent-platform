@@ -15,6 +15,9 @@ import {
 } from "@/components/domain/status";
 import { ScoreRing } from "@/components/domain/score-ring";
 import { StepTimeline } from "@/components/domain/step-timeline";
+import { Waterfall } from "@/components/domain/waterfall";
+import { AgentGraph } from "@/components/domain/agent-graph";
+import { StreamPanel } from "@/components/domain/stream-panel";
 import { QualityGatesPanel } from "@/components/domain/quality-gates-panel";
 import { LogsPanel } from "@/components/domain/logs-panel";
 import { ApprovalPanel, ApprovalOutcome } from "@/components/domain/approval-panel";
@@ -119,9 +122,32 @@ export default async function WorkflowDetailPage({
         />
       </section>
 
+      {/* Agent graph */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle as="h2">Agent graph</CardTitle>
+          <span className="text-xs text-fg-subtle">Planner → Code → QA → Review</span>
+        </CardHeader>
+        <CardBody>
+          <AgentGraph steps={steps} />
+        </CardBody>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* Main column */}
         <div className="space-y-6">
+          {steps.some((s) => s.startedAt) ? <StreamPanel workflowId={workflow.id} /> : null}
+
+          <Card>
+            <CardHeader>
+              <CardTitle as="h2">Trace</CardTitle>
+              <span className="text-xs text-fg-subtle">span waterfall</span>
+            </CardHeader>
+            <CardBody>
+              <Waterfall steps={steps} />
+            </CardBody>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle as="h2">Request</CardTitle>

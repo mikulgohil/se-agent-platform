@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button";
+import { CommandTrigger } from "@/components/shell/command-palette";
 import { IconArrowRight, IconLogo, IconPlus } from "@/components/ui/icons";
 
 export function Topbar() {
@@ -13,12 +14,13 @@ export function Topbar() {
         <span className="text-sm font-semibold tracking-tight">Forge</span>
       </Link>
 
-      <div className="hidden items-center gap-2 text-sm text-fg-subtle md:flex">
+      <div className="hidden items-center gap-3 md:flex">
+        <CommandTrigger />
         <a
           href="https://github.com/mikulgohil/se-agent-platform"
           target="_blank"
           rel="noreferrer"
-          className="rounded-md px-2 py-1 transition-colors hover:text-fg"
+          className="rounded-md px-2 py-1 text-sm text-fg-subtle transition-colors hover:text-fg"
         >
           Docs &amp; source
         </a>

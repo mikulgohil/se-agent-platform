@@ -85,9 +85,17 @@ What it's meant to show:
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
-**Workflow detail** — agent timeline with expandable typed outputs, quality gates, approval, and logs.
+**Workflow detail** — agent graph, a live SSE trace, a span waterfall, the agent timeline, quality gates, approval, and logs.
 
 ![Workflow detail](docs/screenshots/workflow-detail.png)
+
+**Live trace (SSE)** — replay a run as a real server-sent stream: agents execute step-by-step with a ticking token / cost / elapsed counter.
+
+![Live trace](docs/screenshots/live-trace.png)
+
+**Command palette (⌘K)** — keyboard-first navigation and fuzzy search across every workflow.
+
+![Command palette](docs/screenshots/command-palette.png)
 
 **PR artifact** — pull-request-ready summary, copyable as Markdown.
 
@@ -115,9 +123,15 @@ load an example to watch a fresh run.
   Zod-validated, with one-click examples.
 - **Multi-agent run** — nine steps across four agents execute, with retries on
   transient failure and graceful skip-on-failure.
-- **Workflow detail** — request summary, an **agent timeline** with expandable typed
-  outputs per step, scored **quality gates**, a streaming-style **log**, an
-  **approval panel**, and the generated **PR artifact**.
+- **Workflow detail** — an **agent graph** (Planner → Code → QA → Review with live
+  per-node status), a **live SSE trace** you can replay, a **span waterfall**, an
+  **agent timeline** with expandable typed outputs, scored **quality gates**, a
+  **log** stream, an **approval panel**, and the generated **PR artifact**.
+- **Live streaming** — replay any run as real Server-Sent Events: steps execute
+  one-by-one with a ticking token / cost / elapsed counter and a streaming terminal.
+- **Dashboard analytics** — activity trend chart, tokens-by-agent breakdown, and
+  sparklines, all hand-rendered in SVG (no charting dependency).
+- **Command palette (⌘K)** — keyboard-first navigation + fuzzy workflow search.
 - **Human-in-the-loop** — runs pause at `awaiting_approval`; you approve (→ PR
   artifact) or request changes (→ rejected). Failed runs offer a **retry**.
 - **PR artifact** — title, summary, implementation plan, files changed, testing plan,
@@ -307,7 +321,10 @@ run produces a realistic timeline and seed data renders identically on every bui
 - **Tailwind CSS v4** (CSS-first `@theme` tokens, dark UI, semantic design tokens)
 - **Zod** for input validation (Server Actions are the trust boundary)
 - **Supabase-ready** persistence layer (Postgres schema included)
-- Zero runtime UI dependencies beyond React — icons are inline SVG
+- **Server-Sent Events** for live run streaming (native `EventSource`)
+- **Motion** (page/stream transitions) + **cmdk** (⌘K palette) — the only runtime
+  UI deps; all charts, the waterfall, and the agent graph are hand-coded SVG
+  (see [ADR 0001](docs/decisions/0001-visualization-and-streaming.md))
 
 ## Project structure
 
@@ -404,12 +421,15 @@ per-process — wire the Supabase adapter for shared, durable state.
 
 ## Roadmap
 
+- [x] Live step streaming via Server-Sent Events
+- [x] Agent graph (DAG) view + span-waterfall trace
+- [x] Dashboard analytics (activity trend, tokens-by-agent, sparklines)
+- [x] Command palette (⌘K) + keyboard navigation
 - [ ] Real Claude adapter (structured output via Zod)
 - [ ] Supabase adapter implementation + auth
-- [ ] Live step streaming (Server-Sent Events) instead of synchronous runs
-- [ ] Workflow replay & run-vs-run comparison
-- [ ] Model selector with live cost tracking
-- [ ] Command palette + dark/light theme toggle
+- [ ] Run-vs-run comparison / experiment diff
+- [ ] Evals & score-over-time analytics page
+- [ ] Model selector with live cost tracking + dark/light theme toggle
 
 ## Notes for reviewers
 

@@ -4,8 +4,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/domain/stat-card";
 import { ScoreRing } from "@/components/domain/score-ring";
 import { WorkflowRow } from "@/components/domain/workflow-row";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
+import { MiniAreaChart, MiniBarChart } from "@/components/ui/charts";
+import { AGENT_META } from "@/lib/engineering-agent/agents";
+import type { AgentName } from "@/lib/engineering-agent/types";
 import {
   IconWorkflows,
   IconCheck,
@@ -23,8 +26,16 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const repo = await getRepository();
-  const metrics = await repo.getDashboardMetrics();
+  const [metrics, activity, tokensByAgent] = await Promise.all([
+    repo.getDashboardMetrics(),
+    repo.getActivitySeries(14),
+    repo.getTokensByAgent(),
+  ]);
   const now = serverNow();
+
+  const runsSeries = activity.map((p) => p.runs);
+  const qualitySeries = activity.map((p) => p.avgQuality);
+  const costSeries = activity.map((p) => p.cost);
 
   return (
     <div>
@@ -45,6 +56,7 @@ export default async function DashboardPage() {
           value={String(metrics.total)}
           icon={IconWorkflows}
           hint={`${metrics.running} running`}
+          series={runsSeries}
         />
         <StatCard
           label="Completed"
@@ -88,6 +100,56 @@ export default async function DashboardPage() {
           value={formatCost(metrics.totalCost)}
           hint="across all runs (mock pricing)"
         />
+      </section>
+
+      <section className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <Card>
+          <CardHeader>
+            <CardTitle as="h2">Activity</CardTitle>
+            <span className="text-xs text-fg-subtle">runs / day · last 14 days</span>
+          </CardHeader>
+          <CardBody>
+            <MiniAreaChart
+              values={runsSeries}
+              labels={activity.map((p) => p.label)}
+              valueFormat={(v) => `${v} runs`}
+            />
+            <div className="mt-3 flex items-center justify-between text-xs text-fg-subtle">
+              <span>
+                Avg quality trend:{" "}
+                <span className="text-fg-muted tabular-nums">
+                  {qualitySeries[0]} → {qualitySeries[qualitySeries.length - 1]}
+                </span>
+              </span>
+              <span>
+                Spend trend:{" "}
+                <span className="text-fg-muted tabular-nums">
+                  {formatCost(costSeries.reduce((a, b) => a + b, 0))} total
+                </span>
+              </span>
+            </div>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle as="h2">Tokens by agent</CardTitle>
+            <span className="text-xs text-fg-subtle">all runs</span>
+          </CardHeader>
+          <CardBody>
+            {tokensByAgent.length === 0 ? (
+              <p className="text-sm text-fg-muted">No runs yet.</p>
+            ) : (
+              <MiniBarChart
+                data={tokensByAgent.map((t) => ({
+                  label: AGENT_META[t.agent as AgentName].label,
+                  value: t.tokens,
+                  color: AGENT_META[t.agent as AgentName].colorVar,
+                }))}
+                valueFormat={(v) => `${(v / 1000).toFixed(1)}k`}
+              />
+            )}
+          </CardBody>
+        </Card>
       </section>
 
       <section className="mt-8">

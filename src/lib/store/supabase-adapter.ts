@@ -86,4 +86,16 @@ export class SupabaseRepository implements Repository {
     // aggregate query over `workflows` (count by status, avg score/duration)
     throw new Error(NOT_IMPLEMENTED);
   }
+
+  async getActivitySeries(
+    _days: number,
+  ): Promise<import("./repository").ActivityPoint[]> {
+    // date_trunc('day', created_at) aggregate over `workflows`
+    throw new Error(NOT_IMPLEMENTED);
+  }
+
+  async getTokensByAgent(): Promise<{ agent: string; tokens: number }[]> {
+    // sum(tokens_estimate) group by agent_name over `workflow_steps`
+    throw new Error(NOT_IMPLEMENTED);
+  }
 }
