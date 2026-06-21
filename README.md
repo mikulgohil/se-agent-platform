@@ -14,6 +14,9 @@ artifact — with a human approving before anything ships.
 [![Zod](https://img.shields.io/badge/Zod-validation-3E67B1)](https://zod.dev)
 ![Mock mode](https://img.shields.io/badge/runs%20with-zero%20API%20keys-22C55E)
 
+[![CI](https://github.com/mikulgohil/se-agent-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/mikulgohil/se-agent-platform/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 </div>
 
 ---
@@ -345,7 +348,24 @@ pnpm dev        # http://localhost:3000
 pnpm build      # production build
 pnpm start      # serve the production build
 pnpm lint       # eslint
+pnpm typecheck  # tsc --noEmit
+pnpm test       # vitest run
 ```
+
+### Testing
+
+The engine is framework-free (pure functions over plain data), so it's unit-tested
+in a plain Node environment — fast, no jsdom. The suite (31 tests) covers the runtime
+(success, retry-then-succeed, fail-and-skip, determinism), quality gates, Zod input
+parsing, the agents + registry, the Markdown exporter, and a `MemoryStore` integration
+test of the full create → approve → artifact flow.
+
+```bash
+pnpm test          # run once
+pnpm test:watch    # watch mode
+```
+
+CI (GitHub Actions) runs lint → typecheck → test → build on every push and PR.
 
 ## Environment variables
 
@@ -399,3 +419,7 @@ mock-vs-real seams are written up in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.
 the build log is in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 
 Built with Next.js 16, React 19, and TypeScript.
+
+## License
+
+[MIT](LICENSE) © Mikul Gohil
