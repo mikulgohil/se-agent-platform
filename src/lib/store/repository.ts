@@ -1,7 +1,9 @@
 import type {
   Complexity,
   Framework,
+  GateStatus,
   PullRequestArtifact,
+  QualityGateName,
   RiskLevel,
   WorkflowDetail,
   WorkflowStatus,
@@ -54,6 +56,35 @@ export interface ActivityPoint {
   tokens: number;
 }
 
+/** Per-evaluator (quality gate) aggregate across all scored runs. */
+export interface GateAggregate {
+  name: QualityGateName;
+  avgScore: number;
+  passed: number;
+  warning: number;
+  failed: number;
+  runs: number;
+  /** % of runs where this gate passed. */
+  passRate: number;
+}
+
+/** A single scored run's quality score, for the trend chart. */
+export interface QualityTrendPoint {
+  workflowId: string;
+  label: string;
+  score: number;
+  status: GateStatus | "scored";
+}
+
+export interface EvalSummary {
+  gates: GateAggregate[];
+  trend: QualityTrendPoint[];
+  scoredRuns: number;
+  avgQuality: number | null;
+  /** % of all (gate × run) checks that passed. */
+  overallPassRate: number | null;
+}
+
 export interface ApprovalInput {
   approved: boolean;
   note: string;
@@ -88,6 +119,8 @@ export interface Repository {
   getActivitySeries(days: number): Promise<ActivityPoint[]>;
   /** Estimated token usage broken down by agent across all runs. */
   getTokensByAgent(): Promise<{ agent: string; tokens: number }[]>;
+  /** Per-evaluator aggregates + quality trend for the analytics page. */
+  getEvalSummary(): Promise<EvalSummary>;
 }
 
 /** Duration helper shared by adapters. */

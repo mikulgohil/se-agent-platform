@@ -11,6 +11,8 @@ import {
   IconArtifact,
   IconSettings,
   IconLogo,
+  IconGauge,
+  IconBranch,
 } from "@/components/ui/icons";
 
 interface NavItem {
@@ -23,6 +25,8 @@ const NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: IconDashboard },
   { href: "/requests/new", label: "New request", icon: IconPlus },
   { href: "/workflows", label: "Workflows", icon: IconWorkflows },
+  { href: "/analytics", label: "Analytics", icon: IconGauge },
+  { href: "/compare", label: "Compare", icon: IconBranch },
   { href: "/artifacts", label: "Artifacts", icon: IconArtifact },
   { href: "/settings", label: "Settings", icon: IconSettings },
 ];

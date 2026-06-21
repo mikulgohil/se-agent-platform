@@ -14,10 +14,13 @@ import {
   type ApprovalInput,
   type ArtifactSummary,
   type DashboardMetrics,
+  type EvalSummary,
+  type GateAggregate,
   type Repository,
   type WorkflowSummary,
   durationMsOf,
 } from "./repository";
+import { QUALITY_GATE_NAMES, type QualityGateName } from "@/lib/engineering-agent/types";
 import type { EngineeringRequestInput } from "@/lib/engineering-agent/schema";
 
 export interface SeedData {
@@ -281,5 +284,70 @@ export class MemoryStore implements Repository {
     return order
       .filter((a) => totals.has(a))
       .map((agent) => ({ agent, tokens: totals.get(agent) ?? 0 }));
+  }
+
+  async getEvalSummary(): Promise<EvalSummary> {
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    // gate aggregates, treating each quality gate as an "evaluator"
+    const acc = new Map<
+      QualityGateName,
+      { scoreSum: number; passed: number; warning: number; failed: number; runs: number }
+    >();
+    for (const gates of this.gates.values()) {
+      for (const g of gates) {
+        const a =
+          acc.get(g.name) ?? { scoreSum: 0, passed: 0, warning: 0, failed: 0, runs: 0 };
+        a.scoreSum += g.score;
+        a.runs += 1;
+        if (g.status === "passed") a.passed += 1;
+        else if (g.status === "warning") a.warning += 1;
+        else a.failed += 1;
+        acc.set(g.name, a);
+      }
+    }
+
+    const gateAggregates: GateAggregate[] = QUALITY_GATE_NAMES.filter((n) => acc.has(n)).map(
+      (name) => {
+        const a = acc.get(name)!;
+        return {
+          name,
+          avgScore: Math.round(a.scoreSum / a.runs),
+          passed: a.passed,
+          warning: a.warning,
+          failed: a.failed,
+          runs: a.runs,
+          passRate: Math.round((a.passed / a.runs) * 100),
+        };
+      },
+    );
+
+    // quality trend over scored runs (those that have gates), oldest → newest
+    const scored = [...this.workflows.values()]
+      .filter((w) => (this.gates.get(w.id)?.length ?? 0) > 0)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    const trend = scored.map((w) => {
+      const d = new Date(w.createdAt);
+      return {
+        workflowId: w.id,
+        label: `${MONTHS[d.getMonth()]} ${d.getDate()}`,
+        score: w.qualityScore,
+        status: "scored" as const,
+      };
+    });
+
+    const totalChecks = gateAggregates.reduce((s, g) => s + g.runs, 0);
+    const totalPassed = gateAggregates.reduce((s, g) => s + g.passed, 0);
+    const avgQuality = scored.length
+      ? Math.round(scored.reduce((s, w) => s + w.qualityScore, 0) / scored.length)
+      : null;
+
+    return {
+      gates: gateAggregates,
+      trend,
+      scoredRuns: scored.length,
+      avgQuality,
+      overallPassRate: totalChecks ? Math.round((totalPassed / totalChecks) * 100) : null,
+    };
   }
 }

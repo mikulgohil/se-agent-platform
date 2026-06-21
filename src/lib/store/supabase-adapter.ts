@@ -98,4 +98,10 @@ export class SupabaseRepository implements Repository {
     // sum(tokens_estimate) group by agent_name over `workflow_steps`
     throw new Error(NOT_IMPLEMENTED);
   }
+
+  async getEvalSummary(): Promise<import("./repository").EvalSummary> {
+    // group by gate name over `quality_gates` (avg score, status counts) +
+    // quality_score trend from `workflows`
+    throw new Error(NOT_IMPLEMENTED);
+  }
 }

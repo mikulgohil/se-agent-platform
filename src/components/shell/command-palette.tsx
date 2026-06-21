@@ -9,6 +9,8 @@ import {
   IconWorkflows,
   IconArtifact,
   IconSettings,
+  IconGauge,
+  IconBranch,
 } from "@/components/ui/icons";
 
 /** A button that opens the palette — for the topbar. */
@@ -38,6 +40,8 @@ const NAV = [
   { href: "/dashboard", label: "Go to Dashboard", icon: IconDashboard },
   { href: "/requests/new", label: "New request", icon: IconPlus },
   { href: "/workflows", label: "Go to Workflows", icon: IconWorkflows },
+  { href: "/analytics", label: "Go to Analytics & evals", icon: IconGauge },
+  { href: "/compare", label: "Compare runs", icon: IconBranch },
   { href: "/artifacts", label: "Go to Artifacts", icon: IconArtifact },
   { href: "/settings", label: "Go to Settings", icon: IconSettings },
 ];

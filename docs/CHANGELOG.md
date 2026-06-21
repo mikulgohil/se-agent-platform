@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-06-21 — Roadmap: analytics & comparison
+
+- **Summary:** Shipped the two remaining mock-data roadmap features. An
+  **Analytics & evals** page (`/analytics`) treats each quality gate as an
+  evaluator — score-over-runs trend, per-evaluator pass rates + average scores,
+  and spend over time. A **Run comparison** page (`/compare`) diffs two runs side
+  by side (quality gates, cost, tokens, timing) with green/red deltas.
+- **Files touched:** `src/app/analytics/*`, `src/app/compare/*`,
+  `src/components/domain/compare-picker.tsx`, `src/lib/store/*` (new
+  `getEvalSummary`), `src/components/shell/{sidebar,command-palette}.tsx`,
+  `README.md`, screenshots.
+- **Decisions:** Reused the zero-dep SVG charts and existing components — no new
+  dependencies. `getEvalSummary` added behind the `Repository` seam.
+- **Deliberately not shipped:** real Claude adapter and Supabase implementation —
+  both need external credentials to verify, so they remain documented seams
+  rather than untested code.
+- **Follow-ups:** model selector + dark/light theme.
+
+## 2026-06-21 — Production UI v2
+
+- **Summary:** Live SSE run streaming, agent DAG graph, span-waterfall trace,
+  dashboard analytics (activity/tokens/sparklines), ⌘K command palette, Motion
+  transitions, skeleton loaders, layered elevation tokens.
+- **Decisions:** Charts/waterfall/graph hand-coded in SVG; only `motion` + `cmdk`
+  added as runtime deps. See `docs/decisions/0001-visualization-and-streaming.md`.
+
 ## 2026-06-21 — Initial build
 
 - **Summary:** Built Forge, the Software Engineering Agent Platform, end to end —

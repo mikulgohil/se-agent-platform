@@ -93,6 +93,14 @@ What it's meant to show:
 
 ![Live trace](docs/screenshots/live-trace.png)
 
+**Analytics & evals** — per-evaluator pass rates, quality-score trend, and spend over time.
+
+![Analytics & evals](docs/screenshots/analytics.png)
+
+**Run comparison** — side-by-side diff of two runs with green/red deltas.
+
+![Run comparison](docs/screenshots/compare.png)
+
 **Command palette (⌘K)** — keyboard-first navigation and fuzzy search across every workflow.
 
 ![Command palette](docs/screenshots/command-palette.png)
@@ -131,6 +139,10 @@ load an example to watch a fresh run.
   one-by-one with a ticking token / cost / elapsed counter and a streaming terminal.
 - **Dashboard analytics** — activity trend chart, tokens-by-agent breakdown, and
   sparklines, all hand-rendered in SVG (no charting dependency).
+- **Analytics & evals** — treats each quality gate as an *evaluator*: score-over-
+  runs trend, per-evaluator pass rates + average scores, and spend over time.
+- **Run comparison** — diff two runs side by side (quality gates, cost, tokens,
+  timing) with green/red deltas from baseline to candidate.
 - **Command palette (⌘K)** — keyboard-first navigation + fuzzy workflow search.
 - **Human-in-the-loop** — runs pause at `awaiting_approval`; you approve (→ PR
   artifact) or request changes (→ rejected). Failed runs offer a **retry**.
@@ -330,9 +342,10 @@ run produces a realistic timeline and seed data renders identically on every bui
 
 ```
 src/
-  app/                      # routes: /, /dashboard, /requests/new,
-                            #         /workflows, /workflows/[id],
+  app/                      # routes: /, /dashboard, /requests/new, /workflows,
+                            #         /workflows/[id], /analytics, /compare,
                             #         /artifacts, /artifacts/[id], /settings
+                            # api:    /api/workflows, /api/workflows/[id]/stream (SSE)
   components/
     ui/                     # design-system primitives (Card, Button, Badge…)
     domain/                 # workflow timeline, step output, quality gates…
@@ -425,10 +438,10 @@ per-process — wire the Supabase adapter for shared, durable state.
 - [x] Agent graph (DAG) view + span-waterfall trace
 - [x] Dashboard analytics (activity trend, tokens-by-agent, sparklines)
 - [x] Command palette (⌘K) + keyboard navigation
-- [ ] Real Claude adapter (structured output via Zod)
-- [ ] Supabase adapter implementation + auth
-- [ ] Run-vs-run comparison / experiment diff
-- [ ] Evals & score-over-time analytics page
+- [x] Run-vs-run comparison / experiment diff
+- [x] Evals & score-over-time analytics page
+- [ ] Real Claude adapter (structured output via Zod) — _needs an API key to verify_
+- [ ] Supabase adapter implementation + auth — _needs a live project to verify_
 - [ ] Model selector with live cost tracking + dark/light theme toggle
 
 ## Notes for reviewers

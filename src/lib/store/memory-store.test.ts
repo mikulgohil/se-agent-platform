@@ -50,6 +50,25 @@ describe("MemoryStore", () => {
     ).rejects.toThrow();
   });
 
+  it("aggregates an eval summary with per-gate stats and a trend", async () => {
+    const store = new MemoryStore();
+    await store.createAndRunWorkflow(input, "forge-sim-1");
+    await store.createAndRunWorkflow(input, "forge-sim-1");
+
+    const evals = await store.getEvalSummary();
+    expect(evals.scoredRuns).toBe(2);
+    expect(evals.gates.length).toBe(6);
+    expect(evals.trend.length).toBe(2);
+    expect(evals.avgQuality).toBeGreaterThan(0);
+    expect(evals.overallPassRate).not.toBeNull();
+    for (const g of evals.gates) {
+      expect(g.runs).toBe(2);
+      expect(g.passed + g.warning + g.failed).toBe(2);
+      expect(g.passRate).toBeGreaterThanOrEqual(0);
+      expect(g.passRate).toBeLessThanOrEqual(100);
+    }
+  });
+
   it("aggregates dashboard metrics across runs", async () => {
     const store = new MemoryStore();
     const a = await store.createAndRunWorkflow(input, "forge-sim-1");
